@@ -19,12 +19,14 @@ export type PageUrlInsertPayload = z.infer<typeof PageUrlInsertPayloadSchema>;
 
 export function getPageUrls(): PageUrl[] {
   const stmt = db.prepare('SELECT * FROM page_urls');
-  return stmt.all() as PageUrl[];
+  const rows = stmt.all() as PageUrl[];
+  return rows.map(r => ({ ...r }));
 }
 
 export function getPageUrlById(id: string): PageUrl | undefined {
   const stmt = db.prepare('SELECT * FROM page_urls WHERE id = ?');
-  return stmt.get(id) as PageUrl | undefined;
+  const row = stmt.get(id) as PageUrl | undefined;
+  return row ? { ...row } : undefined;
 }
 
 export function createPageUrl(payload: PageUrlInsertPayload): PageUrl {

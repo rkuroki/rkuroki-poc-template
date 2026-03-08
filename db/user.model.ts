@@ -22,12 +22,14 @@ export type UserInsertPayload = z.infer<typeof UserInsertPayloadSchema>;
 
 export function getUserById(id: string): User | undefined {
   const stmt = db.prepare('SELECT * FROM users WHERE id = ?');
-  return stmt.get(id) as User | undefined;
+  const row = stmt.get(id) as User | undefined;
+  return row ? { ...row } : undefined;
 }
 
 export function getUserByUsername(username: string): User | undefined {
   const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
-  return stmt.get(username) as User | undefined;
+  const row = stmt.get(username) as User | undefined;
+  return row ? { ...row } : undefined;
 }
 
 export function createUser(payload: UserInsertPayload): User {
@@ -49,4 +51,15 @@ export function createUser(payload: UserInsertPayload): User {
 export function updateUserPassword(id: string, newEncryptedPwd: string): void {
   const stmt = db.prepare('UPDATE users SET pwd = ? WHERE id = ?');
   stmt.run(newEncryptedPwd, id);
+}
+
+export function getUsers(): User[] {
+  const stmt = db.prepare('SELECT * FROM users');
+  const rows = stmt.all() as User[];
+  return rows.map(r => ({ ...r }));
+}
+
+export function deleteUser(id: string): void {
+  const stmt = db.prepare('DELETE FROM users WHERE id = ?');
+  stmt.run(id);
 }

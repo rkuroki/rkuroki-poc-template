@@ -20,12 +20,14 @@ export type NoteInsertPayload = z.infer<typeof NoteInsertPayloadSchema>;
 
 export function getNotesByUserId(userId: string): Note[] {
   const stmt = db.prepare('SELECT * FROM notes WHERE userId = ? ORDER BY "order" ASC');
-  return stmt.all(userId) as Note[];
+  const rows = stmt.all(userId) as Note[];
+  return rows.map(row => ({ ...row }));
 }
 
 export function getNoteById(id: string): Note | undefined {
   const stmt = db.prepare('SELECT * FROM notes WHERE id = ?');
-  return stmt.get(id) as Note | undefined;
+  const row = stmt.get(id) as Note | undefined;
+  return row ? { ...row } : undefined;
 }
 
 export function createNote(userId: string, payload: NoteInsertPayload): Note {
@@ -54,4 +56,10 @@ export function updateNote(id: string, payload: Partial<NoteInsertPayload>): Not
 export function deleteNote(id: string): void {
   const stmt = db.prepare('DELETE FROM notes WHERE id = ?');
   stmt.run(id);
+}
+
+export function getNotes(): Note[] {
+  const stmt = db.prepare('SELECT * FROM notes');
+  const rows = stmt.all() as Note[];
+  return rows.map(row => ({ ...row }));
 }
