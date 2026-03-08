@@ -32,12 +32,30 @@ db.exec(`
     pwd TEXT NOT NULL,
     name TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS page_urls (
+    id TEXT PRIMARY KEY,
+    url TEXT NOT NULL,
+    path TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS notes (
+    id TEXT PRIMARY KEY,
+    note TEXT NOT NULL,
+    "order" INTEGER NOT NULL DEFAULT 0,
+    userId TEXT NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
 `);
 
 // Seeding function (synchronous - executed on startup)
 function initDb() {
   const insertUser = db.prepare('INSERT INTO users (id, username, pwd, name) VALUES (?, ?, ?, ?)');
   const getUserByUsername = db.prepare('SELECT id FROM users WHERE username = ?');
+  const insertNote = db.prepare('INSERT INTO notes (id, note, "order", userId) VALUES (?, ?, ?, ?)');
+  const insertPageUrl = db.prepare('INSERT INTO page_urls (id, url, path) VALUES (?, ?, ?)');
+  const getNoteCount = db.prepare('SELECT count(*) as count FROM notes WHERE userId = ?');
+  const getPageUrlCount = db.prepare('SELECT count(*) as count FROM page_urls');
 
   // Seed admin user for all environments
   try {
@@ -62,6 +80,33 @@ function initDb() {
     }
   } catch (error) {
     console.error('Failed to seed dev user:', error);
+  }
+
+  // Seed Notes
+  try {
+    const adminUser = getUserByUsername.get('admin') as { id: string } | undefined;
+    if (adminUser) {
+      const noteCount = (getNoteCount.get(adminUser.id) as { count: number }).count;
+      if (noteCount === 0) {
+        for (let i = 1; i <= 5; i++) {
+          insertNote.run(crypto.randomUUID(), `Sample Note ${i}`, i, adminUser.id);
+        }
+        console.log('✅ Seeded 5 initial notes for "admin"');
+      }
+    }
+  } catch (error) {
+    console.error('Failed to seed initial notes:', error);
+  }
+
+  // Seed PageUrl
+  try {
+    const pageUrlCount = (getPageUrlCount.get() as { count: number }).count;
+    if (pageUrlCount === 0) {
+      insertPageUrl.run(crypto.randomUUID(), 'https://github.com', '/github');
+      console.log('✅ Seeded 1 initial PageUrl');
+    }
+  } catch (error) {
+    console.error('Failed to seed initial PageUrl:', error);
   }
 }
 
