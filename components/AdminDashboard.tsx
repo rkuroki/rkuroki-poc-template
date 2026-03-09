@@ -17,6 +17,10 @@ export function AdminDashboard() {
           <h3 className="text-lg font-medium text-blue-600 mb-2">Gerenciar Notas</h3>
           <p className="text-sm text-gray-500">Supervisionar todas as notas criadas pelos usuários.</p>
         </Link>
+        <Link href="/home/feature-flags" className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+          <h3 className="text-lg font-medium text-blue-600 mb-2">Feature Flags</h3>
+          <p className="text-sm text-gray-500">Habilitar rotinas e flags de regras de negócio.</p>
+        </Link>
       </div>
     </div>
   );

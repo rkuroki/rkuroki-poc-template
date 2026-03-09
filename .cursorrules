@@ -1,0 +1,7 @@
+# AI Assistant Rules
+
+## General Behaviors
+- You must always **stop the application** (e.g., terminate any `npm run dev` or `node` processes you started) after concluding a prompt or completing a task that required starting the application. Do not leave the application running in the background between prompts unless explicitly requested by the user.
+
+## Context Limitations
+- **CRITICAL**: Any AI coding, planning, or tooling MUST COMPLETELY IGNORE the `TODO.md` file. Do NOT read it, do NOT parse it, do NOT analyze its contents, and do NOT proactively execute or check off items from it unless explicitly and specifically instructed to do so by the user for a single, localized prompt. The file is strictly for the user's personal tracking.

@@ -53,6 +53,17 @@ export function updateUserPassword(id: string, newEncryptedPwd: string): void {
   stmt.run(newEncryptedPwd, id);
 }
 
+export function updateUserAdmin(id: string, name: string | null, newPwd?: string): void {
+  if (newPwd) {
+    const hashedPassword = bcrypt.hashSync(newPwd, 10);
+    const stmt = db.prepare('UPDATE users SET name = ?, pwd = ? WHERE id = ?');
+    stmt.run(name, hashedPassword, id);
+  } else {
+    const stmt = db.prepare('UPDATE users SET name = ? WHERE id = ?');
+    stmt.run(name, id);
+  }
+}
+
 export function getUsers(): User[] {
   const stmt = db.prepare('SELECT * FROM users');
   const rows = stmt.all() as User[];
