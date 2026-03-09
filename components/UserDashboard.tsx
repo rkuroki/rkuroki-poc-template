@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useEffect } from 'react';
 import { addNoteAction } from '@/app/actions/notes';
+import { SubmitButton } from '@/components/SubmitButton';
 
 type Note = {
   id: string;
@@ -38,13 +39,13 @@ export function UserDashboard({ notes }: { notes: Note[] }) {
             autoComplete="off"
           />
         </div>
-        <button
-          type="submit"
+        <SubmitButton
           disabled={isPending}
-          className="py-2 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 h-[42px]"
+          pendingText="Adicionando..."
+          className="py-2 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 h-[42px]"
         >
-          {isPending ? 'Adicionando...' : 'Adicionar'}
-        </button>
+          Adicionar
+        </SubmitButton>
       </form>
 
       {state?.error && (

@@ -7,12 +7,13 @@ import type { NextRequest } from 'next/server';
 const rateLimitMap = new Map<string, { count: number; timestamp: number }>();
 
 export function middleware(request: NextRequest) {
-  const ip = request.ip ?? '127.0.0.1';
+  // Simple rate limiting based on IP (using x-forwarded-for or fallback)
+  const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
   const now = Date.now();
 
-  // Rate Limiting Logic (10 requests per minute per IP)
+  // Rate Limiting Logic (1000 requests per minute for dev, 100 for prod)
   const windowMs = 60 * 1000;
-  const limits = 10;
+  const limits = process.env.NODE_ENV === 'development' ? 1000 : 100;
   
   if (!rateLimitMap.has(ip)) {
     rateLimitMap.set(ip, { count: 1, timestamp: now });
@@ -28,11 +29,11 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Session Protection (Simple redirect to /login if unauthenticated trying to access protected route)
-  if (request.nextUrl.pathname.startsWith('/dashboard')) {
-    const session = request.cookies.get('session_id');
+  // Session Protection (Redirect to root if unauthenticated trying to access protected route)
+  if (request.nextUrl.pathname.startsWith('/home')) {
+    const session = request.cookies.get('session');
     if (!session) {
-      return NextResponse.redirect(new URL('/login', request.url));
+      return NextResponse.redirect(new URL('/', request.url));
     }
   }
 

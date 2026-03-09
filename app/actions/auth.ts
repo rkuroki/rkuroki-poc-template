@@ -1,7 +1,7 @@
 'use server';
 
 import { getUserByUsername, createUser } from '@/db/user.model';
-import { setSession } from '@/lib/session';
+import { setSession, clearSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import bcrypt from 'bcryptjs';
 
@@ -39,4 +39,9 @@ export async function loginOrRegister(prevState: FormState, formData: FormData) 
   
   // Redirect to home
   redirect('/home');
+}
+
+export async function logoutAction() {
+  await clearSession();
+  redirect('/');
 }

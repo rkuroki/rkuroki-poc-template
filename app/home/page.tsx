@@ -1,7 +1,8 @@
-import { getSession, clearSession } from '@/lib/session';
+import { getSession } from '@/lib/session';
 import { getUserById } from '@/db/user.model';
 import { getNotesByUserId } from '@/db/note.model';
 import { redirect } from 'next/navigation';
+import { logoutAction } from '@/app/actions/auth';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { UserDashboard } from '@/components/UserDashboard';
 
@@ -13,15 +14,8 @@ export default async function HomePage() {
 
   const user = getUserById(userId);
   if (!user) {
-    await clearSession();
     redirect('/');
   }
-
-  const logoutAction = async () => {
-    'use server';
-    await clearSession();
-    redirect('/');
-  };
 
   const isAdmin = user.username === 'admin';
 

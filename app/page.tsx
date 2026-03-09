@@ -2,6 +2,7 @@
 
 import { useState, useActionState } from 'react';
 import { loginOrRegister } from '@/app/actions/auth';
+import { SubmitButton } from '@/components/SubmitButton';
 
 export default function LoginPage() {
   const [displayValue, setDisplayValue] = useState('+55 11 ');
@@ -96,13 +97,13 @@ export default function LoginPage() {
             </div>
           )}
 
-          <button
-            type="submit"
+          <SubmitButton
             disabled={isPending}
-            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            pendingText="Processando..."
+            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            {isPending ? 'Processando...' : 'Prosseguir'}
-          </button>
+            Prosseguir
+          </SubmitButton>
         </form>
       </div>
     </div>
