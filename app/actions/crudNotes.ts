@@ -20,6 +20,7 @@ export async function upsertNoteAction(prevState: unknown, formData: FormData) {
     const note = formData.get('note') as string;
     const orderStr = formData.get('order') as string;
     const order = orderStr ? parseInt(orderStr, 10) : 0;
+    const mne = (formData.get('mne') as string) || undefined;
 
     if (!note) {
       return { error: 'O texto da nota é obrigatório.', success: false };
@@ -28,7 +29,7 @@ export async function upsertNoteAction(prevState: unknown, formData: FormData) {
     if (id) {
       updateNote(id, { note, order });
     } else {
-      createNote(userId, { note, order });
+      createNote(userId, { note, order, mne });
     }
     
     revalidatePath('/home/notes');

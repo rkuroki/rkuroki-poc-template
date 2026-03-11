@@ -1,42 +1,48 @@
 import db from './index';
 import { z } from 'zod';
 import crypto from 'crypto';
+import { generateMnemonic } from '@/lib/mnemonic';
 
 export const PageUrlSchema = z.object({
   id: z.string().uuid(),
   url: z.string().min(1),
   path: z.string().min(1),
+  mne: z.string().min(6),
+  isUuidMne: z.number().int().transform(v => v === 1),
 });
 
-export type PageUrl = z.infer<typeof PageUrlSchema>;
+export type PageUrl = Omit<z.infer<typeof PageUrlSchema>, 'isUuidMne'> & { isUuidMne: boolean };
 
 export const PageUrlInsertPayloadSchema = z.object({
   url: z.string().min(1),
   path: z.string().min(1),
+  mne: z.string().min(6).optional(),
 });
 
 export type PageUrlInsertPayload = z.infer<typeof PageUrlInsertPayloadSchema>;
 
 export function getPageUrls(): PageUrl[] {
   const stmt = db.prepare('SELECT * FROM page_urls');
-  const rows = stmt.all() as PageUrl[];
-  return rows.map(r => ({ ...r }));
+  const rows = stmt.all() as (Omit<PageUrl, 'isUuidMne'> & { isUuidMne: number })[];
+  return rows.map(r => ({ ...r, isUuidMne: Boolean(r.isUuidMne) }));
 }
 
 export function getPageUrlById(id: string): PageUrl | undefined {
   const stmt = db.prepare('SELECT * FROM page_urls WHERE id = ?');
-  const row = stmt.get(id) as PageUrl | undefined;
-  return row ? { ...row } : undefined;
+  const row = stmt.get(id) as (Omit<PageUrl, 'isUuidMne'> & { isUuidMne: number }) | undefined;
+  return row ? { ...row, isUuidMne: Boolean(row.isUuidMne) } : undefined;
 }
 
 export function createPageUrl(payload: PageUrlInsertPayload): PageUrl {
   const validated = PageUrlInsertPayloadSchema.parse(payload);
   const id = crypto.randomUUID();
-  
-  const stmt = db.prepare('INSERT INTO page_urls (id, url, path) VALUES (?, ?, ?)');
-  stmt.run(id, validated.url, validated.path);
-  
-  return { id, ...validated };
+  const mne = validated.mne || generateMnemonic();
+  const isUuidMne = !validated.mne ? 1 : 0;
+
+  const stmt = db.prepare('INSERT INTO page_urls (id, url, path, mne, isUuidMne) VALUES (?, ?, ?, ?, ?)');
+  stmt.run(id, validated.url, validated.path, mne, isUuidMne);
+
+  return { id, url: validated.url, path: validated.path, mne, isUuidMne: Boolean(isUuidMne) };
 }
 
 export function updatePageUrl(id: string, payload: Partial<PageUrlInsertPayload>): PageUrl | undefined {
@@ -49,7 +55,7 @@ export function updatePageUrl(id: string, payload: Partial<PageUrlInsertPayload>
   const stmt = db.prepare('UPDATE page_urls SET url = ?, path = ? WHERE id = ?');
   stmt.run(url, path, id);
 
-  return { id, url, path };
+  return { id, url, path, mne: existing.mne, isUuidMne: existing.isUuidMne };
 }
 
 export function deletePageUrl(id: string): void {

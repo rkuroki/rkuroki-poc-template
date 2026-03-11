@@ -19,6 +19,7 @@ export async function upsertPageUrlAction(prevState: unknown, formData: FormData
     const id = formData.get('id') as string | null;
     const url = formData.get('url') as string;
     const path = formData.get('path') as string;
+    const mne = (formData.get('mne') as string) || undefined;
 
     if (!url || !path) {
       return { error: 'URL e Path são obrigatórios.', success: false };
@@ -27,7 +28,7 @@ export async function upsertPageUrlAction(prevState: unknown, formData: FormData
     if (id) {
       updatePageUrl(id, { url, path });
     } else {
-      createPageUrl({ url, path });
+      createPageUrl({ url, path, mne });
     }
     
     revalidatePath('/home/pageurls');
