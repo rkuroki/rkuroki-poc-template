@@ -19,6 +19,7 @@ export async function upsertUserAction(prevState: unknown, formData: FormData) {
     const username = formData.get('username') as string;
     const pwd = formData.get('pwd') as string;
     const name = formData.get('name') as string;
+    const mne = (formData.get('mne') as string) || undefined;
 
     if (!id && (!username || !pwd)) {
       return { error: 'Username e Password são obrigatórios para novos usuários.', success: false };
@@ -30,7 +31,7 @@ export async function upsertUserAction(prevState: unknown, formData: FormData) {
       }
       updateUserAdmin(id, name || null, pwd || undefined);
     } else {
-      createUser({ username, pwd, name: name || undefined });
+      createUser({ username, pwd, name: name || undefined, mne });
     }
     
     revalidatePath('/home/users');

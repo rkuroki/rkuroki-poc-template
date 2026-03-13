@@ -20,6 +20,7 @@ export async function upsertFeatureFlagAction(prevState: unknown, formData: Form
     const id = formData.get('id') as string | null;
     const name = formData.get('name') as string;
     const value = formData.get('value') as string;
+    const mne = (formData.get('mne') as string) || undefined;
 
     if (!name || !value) {
       return { error: 'O nome e o valor são obrigatórios.', success: false };
@@ -28,7 +29,7 @@ export async function upsertFeatureFlagAction(prevState: unknown, formData: Form
     if (id) {
       updateFeatureFlag(parseInt(id, 10), name, value);
     } else {
-      createFeatureFlag(name, value);
+      createFeatureFlag(name, value, mne);
     }
     
     revalidatePath('/home/feature-flags');
