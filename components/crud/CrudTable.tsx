@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 export interface ColumnDef<T> {
   header: string;
   accessor: keyof T;
@@ -8,11 +10,13 @@ export interface ColumnDef<T> {
 interface CrudTableProps<T> {
   items: T[];
   columns: ColumnDef<T>[];
-  onEdit: (item: T) => void;
+  /** When provided, the Edit button navigates to this path. Receives the item and returns the URL. */
+  editPath?: (item: T) => string;
+  onEdit?: (item: T) => void;
   onDelete: (item: T) => void;
 }
 
-export function CrudTable<T extends { id: string | number }>({ items, columns, onEdit, onDelete }: CrudTableProps<T>) {
+export function CrudTable<T extends { id: string | number }>({ items, columns, editPath, onEdit, onDelete }: CrudTableProps<T>) {
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
       <table className="min-w-full divide-y divide-gray-200">
@@ -44,7 +48,13 @@ export function CrudTable<T extends { id: string | number }>({ items, columns, o
                   </td>
                 ))}
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button onClick={() => onEdit(item)} className="text-blue-600 hover:text-blue-900 mr-4">Editar</button>
+                  {editPath ? (
+                    <Link href={editPath(item)} className="text-blue-600 hover:text-blue-900 mr-4">
+                      Editar
+                    </Link>
+                  ) : (
+                    <button onClick={() => onEdit?.(item)} className="text-blue-600 hover:text-blue-900 mr-4">Editar</button>
+                  )}
                   <button onClick={() => { if(confirm('Tem certeza que deseja excluir?')) onDelete(item); }} className="text-red-600 hover:text-red-900">Excluir</button>
                 </td>
               </tr>

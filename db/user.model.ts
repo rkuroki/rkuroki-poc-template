@@ -24,9 +24,23 @@ export const UserInsertPayloadSchema = z.object({
 
 export type UserInsertPayload = z.infer<typeof UserInsertPayloadSchema>;
 
+export const UserUpdatePayloadSchema = z.object({
+  username: z.string().min(1, 'Username é obrigatório.').optional(),
+  name: z.string().optional(),
+  pwd: z.string().optional(),
+});
+
+export type UserUpdatePayload = z.infer<typeof UserUpdatePayloadSchema>;
+
 export function getUserById(id: string): User | undefined {
   const stmt = db.prepare('SELECT * FROM users WHERE id = ?');
   const row = stmt.get(id) as (Omit<User, 'isUuidMne'> & { isUuidMne: number }) | undefined;
+  return row ? { ...row, isUuidMne: Boolean(row.isUuidMne) } : undefined;
+}
+
+export function getUserByMne(mne: string): User | undefined {
+  const stmt = db.prepare('SELECT * FROM users WHERE mne = ?');
+  const row = stmt.get(mne) as (Omit<User, 'isUuidMne'> & { isUuidMne: number }) | undefined;
   return row ? { ...row, isUuidMne: Boolean(row.isUuidMne) } : undefined;
 }
 
@@ -69,6 +83,22 @@ export function updateUserAdmin(id: string, name: string | null, newPwd?: string
   } else {
     const stmt = db.prepare('UPDATE users SET name = ? WHERE id = ?');
     stmt.run(name, id);
+  }
+}
+
+export function updateUserFull(
+  id: string,
+  payload: { username?: string; name?: string | null; pwd?: string }
+): void {
+  const hashedPwd = payload.pwd ? bcrypt.hashSync(payload.pwd, 10) : undefined;
+  const stmt = hashedPwd
+    ? db.prepare('UPDATE users SET username = COALESCE(?, username), name = COALESCE(?, name), pwd = ? WHERE id = ?')
+    : db.prepare('UPDATE users SET username = COALESCE(?, username), name = COALESCE(?, name) WHERE id = ?');
+
+  if (hashedPwd) {
+    stmt.run(payload.username ?? null, payload.name ?? null, hashedPwd, id);
+  } else {
+    stmt.run(payload.username ?? null, payload.name ?? null, id);
   }
 }
 

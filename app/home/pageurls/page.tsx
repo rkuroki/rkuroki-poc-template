@@ -43,6 +43,7 @@ export default async function AdminPageUrlsPage() {
           fields={fields}
           upsertAction={upsertPageUrlAction}
           deleteAction={deletePageUrlAction}
+          entityName="pageurls"
         />
       </main>
     </div>

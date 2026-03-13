@@ -1,5 +1,13 @@
 import db from './index';
+import { z } from 'zod';
 import { generateMnemonic } from '@/lib/mnemonic';
+
+export const FeatureFlagUpdatePayloadSchema = z.object({
+  name: z.string().min(1, 'O nome da flag é obrigatório.'),
+  value: z.string().min(1, 'O valor da flag é obrigatório.'),
+});
+
+export type FeatureFlagUpdatePayload = z.infer<typeof FeatureFlagUpdatePayloadSchema>;
 
 export type FeatureFlag = {
   id: number;
@@ -13,6 +21,16 @@ export type FeatureFlag = {
 export function getAllFeatureFlags(): FeatureFlag[] {
   const rows = db.prepare('SELECT * FROM feature_flags ORDER BY name ASC').all() as (Omit<FeatureFlag, 'isUuidMne'> & { isUuidMne: number })[];
   return rows.map(r => ({ ...r, isUuidMne: Boolean(r.isUuidMne) }));
+}
+
+export function getFeatureFlagById(id: number): FeatureFlag | undefined {
+  const row = db.prepare('SELECT * FROM feature_flags WHERE id = ?').get(id) as (Omit<FeatureFlag, 'isUuidMne'> & { isUuidMne: number }) | undefined;
+  return row ? { ...row, isUuidMne: Boolean(row.isUuidMne) } : undefined;
+}
+
+export function getFeatureFlagByMne(mne: string): FeatureFlag | undefined {
+  const row = db.prepare('SELECT * FROM feature_flags WHERE mne = ?').get(mne) as (Omit<FeatureFlag, 'isUuidMne'> & { isUuidMne: number }) | undefined;
+  return row ? { ...row, isUuidMne: Boolean(row.isUuidMne) } : undefined;
 }
 
 export function createFeatureFlag(name: string, value: string, mne?: string) {

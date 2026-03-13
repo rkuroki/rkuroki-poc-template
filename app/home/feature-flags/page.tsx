@@ -45,6 +45,7 @@ export default async function FeatureFlagsPage() {
           fields={fields}
           upsertAction={upsertFeatureFlagAction}
           deleteAction={deleteFeatureFlagAction}
+          entityName="featureflags"
         />
       </main>
     </div>

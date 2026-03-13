@@ -22,6 +22,14 @@ export const NoteInsertPayloadSchema = z.object({
 
 export type NoteInsertPayload = z.infer<typeof NoteInsertPayloadSchema>;
 
+export const NoteUpdatePayloadSchema = z.object({
+  note: z.string().min(1, 'O texto da nota é obrigatório.'),
+  order: z.coerce.number().int().optional().default(0),
+  userId: z.string().uuid('userId deve ser um UUID válido.').optional(),
+});
+
+export type NoteUpdatePayload = z.infer<typeof NoteUpdatePayloadSchema>;
+
 export function getNotesByUserId(userId: string): Note[] {
   const stmt = db.prepare('SELECT * FROM notes WHERE userId = ? ORDER BY "order" ASC');
   const rows = stmt.all(userId) as (Omit<Note, 'isUuidMne'> & { isUuidMne: number })[];
@@ -31,6 +39,12 @@ export function getNotesByUserId(userId: string): Note[] {
 export function getNoteById(id: string): Note | undefined {
   const stmt = db.prepare('SELECT * FROM notes WHERE id = ?');
   const row = stmt.get(id) as (Omit<Note, 'isUuidMne'> & { isUuidMne: number }) | undefined;
+  return row ? { ...row, isUuidMne: Boolean(row.isUuidMne) } : undefined;
+}
+
+export function getNoteByMne(mne: string): Note | undefined {
+  const stmt = db.prepare('SELECT * FROM notes WHERE mne = ?');
+  const row = stmt.get(mne) as (Omit<Note, 'isUuidMne'> & { isUuidMne: number }) | undefined;
   return row ? { ...row, isUuidMne: Boolean(row.isUuidMne) } : undefined;
 }
 
@@ -46,17 +60,18 @@ export function createNote(userId: string, payload: NoteInsertPayload): Note {
   return { id, note: validated.note, order: validated.order, userId, mne, isUuidMne: Boolean(isUuidMne) };
 }
 
-export function updateNote(id: string, payload: Partial<NoteInsertPayload>): Note | undefined {
+export function updateNote(id: string, payload: Partial<NoteInsertPayload> & { userId?: string }): Note | undefined {
   const existing = getNoteById(id);
   if (!existing) return undefined;
 
   const note = payload.note !== undefined ? payload.note : existing.note;
   const order = payload.order !== undefined ? payload.order : existing.order;
+  const userId = payload.userId !== undefined ? payload.userId : existing.userId;
 
-  const stmt = db.prepare('UPDATE notes SET note = ?, "order" = ? WHERE id = ?');
-  stmt.run(note, order, id);
+  const stmt = db.prepare('UPDATE notes SET note = ?, "order" = ?, userId = ? WHERE id = ?');
+  stmt.run(note, order, userId, id);
 
-  return { id, note, order, userId: existing.userId, mne: existing.mne, isUuidMne: existing.isUuidMne };
+  return { id, note, order, userId, mne: existing.mne, isUuidMne: existing.isUuidMne };
 }
 
 export function deleteNote(id: string): void {

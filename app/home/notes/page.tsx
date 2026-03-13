@@ -50,6 +50,7 @@ export default async function AdminNotesPage() {
           fields={fields}
           upsertAction={upsertNoteAction}
           deleteAction={deleteNoteAction}
+          entityName="notes"
         />
       </main>
     </div>

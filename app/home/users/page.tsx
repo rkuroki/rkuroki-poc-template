@@ -41,6 +41,7 @@ export default async function AdminUsersPage() {
           fields={fields}
           upsertAction={upsertUserAction}
           deleteAction={deleteUserAction}
+          entityName="users"
         />
       </main>
     </div>

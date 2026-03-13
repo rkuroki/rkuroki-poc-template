@@ -11,9 +11,13 @@ interface CrudLayoutProps<T> {
   fields: FieldDef[];
   upsertAction: (prevState: unknown, formData: FormData) => Promise<{ error: string; success?: boolean }>;
   deleteAction: (id: string | number) => Promise<void>;
+  /** The entity name used to build the edit URL: /crud/{entityName}/{mne} */
+  entityName?: string;
 }
 
-export function CrudLayout<T extends { id: string | number }>({ title, items, columns, fields, upsertAction, deleteAction }: CrudLayoutProps<T>) {
+export function CrudLayout<T extends { id: string | number }>(
+  { title, items, columns, fields, upsertAction, deleteAction, entityName }: CrudLayoutProps<T>
+) {
   const [editingItem, setEditingItem] = useState<T | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -35,15 +39,20 @@ export function CrudLayout<T extends { id: string | number }>({ title, items, co
     });
   };
 
+  // When entityName is set, use navigation-based editing (link to /crud/entity/mne)
+  const editPath = entityName
+    ? (item: T) => `/crud/${entityName}/${(item as T & { mne?: string }).mne ?? item.id}`
+    : undefined;
+
   return (
     <div className="flex flex-col md:flex-row gap-8 items-start">
-      {/* Form Section */}
+      {/* Form Section — shown only when editing inline (no entityName) */}
       <div className="w-full md:w-1/3">
         <CrudForm<T>
-          fields={fields} 
-          editingItem={editingItem} 
-          onCancelEdit={handleCancelEdit} 
-          upsertAction={upsertAction} 
+          fields={fields}
+          editingItem={editingItem}
+          onCancelEdit={handleCancelEdit}
+          upsertAction={upsertAction}
         />
       </div>
 
@@ -54,10 +63,11 @@ export function CrudLayout<T extends { id: string | number }>({ title, items, co
         </div>
         <div className={`transition-opacity duration-200 ${isPending ? 'opacity-50 pointer-events-none' : ''}`}>
           <CrudTable<T>
-            items={items} 
-            columns={columns} 
-            onEdit={handleEdit} 
-            onDelete={handleDelete} 
+            items={items}
+            columns={columns}
+            editPath={editPath}
+            onEdit={editPath ? undefined : handleEdit}
+            onDelete={handleDelete}
           />
         </div>
       </div>

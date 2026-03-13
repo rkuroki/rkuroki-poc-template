@@ -21,6 +21,13 @@ export const PageUrlInsertPayloadSchema = z.object({
 
 export type PageUrlInsertPayload = z.infer<typeof PageUrlInsertPayloadSchema>;
 
+export const PageUrlUpdatePayloadSchema = z.object({
+  url: z.string().min(1, 'A URL é obrigatória.').url('Deve ser uma URL válida.'),
+  path: z.string().min(1, 'O path é obrigatório.'),
+});
+
+export type PageUrlUpdatePayload = z.infer<typeof PageUrlUpdatePayloadSchema>;
+
 export function getPageUrls(): PageUrl[] {
   const stmt = db.prepare('SELECT * FROM page_urls');
   const rows = stmt.all() as (Omit<PageUrl, 'isUuidMne'> & { isUuidMne: number })[];
@@ -30,6 +37,12 @@ export function getPageUrls(): PageUrl[] {
 export function getPageUrlById(id: string): PageUrl | undefined {
   const stmt = db.prepare('SELECT * FROM page_urls WHERE id = ?');
   const row = stmt.get(id) as (Omit<PageUrl, 'isUuidMne'> & { isUuidMne: number }) | undefined;
+  return row ? { ...row, isUuidMne: Boolean(row.isUuidMne) } : undefined;
+}
+
+export function getPageUrlByMne(mne: string): PageUrl | undefined {
+  const stmt = db.prepare('SELECT * FROM page_urls WHERE mne = ?');
+  const row = stmt.get(mne) as (Omit<PageUrl, 'isUuidMne'> & { isUuidMne: number }) | undefined;
   return row ? { ...row, isUuidMne: Boolean(row.isUuidMne) } : undefined;
 }
 
